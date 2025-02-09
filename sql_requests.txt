@@ -1,0 +1,190 @@
+--1
+
+CREATE DATABASE LibraryManagement;
+
+USE LibraryManagement;
+
+CREATE TABLE authors (
+    author_id INT AUTO_INCREMENT PRIMARY KEY,
+    author_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE genres (
+    genre_id INT AUTO_INCREMENT PRIMARY KEY,
+    genre_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE books (
+    book_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    publication_year YEAR NOT NULL,
+    author_id INT,
+    genre_id INT,
+    FOREIGN KEY (author_id) REFERENCES authors(author_id) ON DELETE CASCADE,
+    FOREIGN KEY (genre_id) REFERENCES genres(genre_id) ON DELETE CASCADE
+);
+
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE borrowed_books (
+    borrow_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT,
+    user_id INT,
+    borrow_date DATE NOT NULL,
+    return_date DATE,
+    FOREIGN KEY (book_id) REFERENCES books(book_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+
+--2
+
+INSERT INTO authors (author_name)
+VALUES 
+    ('Тарас Шевченко'),
+    ('Леся Українка');
+
+INSERT INTO genres (genre_name)
+VALUES 
+    ('Поезія'),
+    ('Проза');
+
+INSERT INTO books (title, publication_year, author_id, genre_id)
+VALUES 
+    ('Кобзар', 1920, 1, 1),
+    ('Лісова пісня', 1911, 2, 2);
+
+INSERT INTO users (username, email)
+VALUES 
+    ('ivan_petro', 'ivan@example.com'),
+    ('olena_dovga', 'olena@example.com');
+
+INSERT INTO borrowed_books (book_id, user_id, borrow_date, return_date)
+VALUES 
+    (1, 1, '2025-02-01', '2025-02-10'),
+    (2, 2, '2025-02-02', NULL);
+
+
+--3
+
+SELECT *
+FROM order_details AS od
+INNER JOIN orders ON od.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.shipper_id
+INNER JOIN products ON od.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+INNER JOIN suppliers ON products.supplier_id = suppliers.id;
+
+
+--4_1
+
+SELECT COUNT(*) AS total_rows
+FROM order_details AS od
+INNER JOIN orders ON od.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.shipper_id
+INNER JOIN products ON od.product_id = products.id
+INNER JOIN categories ON products.category_id = categories.id
+INNER JOIN suppliers ON products.supplier_id = suppliers.id;
+
+
+--4_2
+
+SELECT COUNT(*) AS total_rows
+FROM order_details AS od
+INNER JOIN orders ON od.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+RIGHT JOIN products ON od.product_id = products.id
+RIGHT JOIN categories ON products.category_id = categories.id
+RIGHT JOIN suppliers ON products.supplier_id = suppliers.id;
+
+Вплив комбінування INNER JOIN та RIGHT JOIN:
+Комбінація INNER JOIN та RIGHT JOIN не змінює кількість рядків, якщо всі записи у правих таблицях (products, categories, suppliers) мають відповідні зв'язки в order_details. 
+Це пояснюється тим, що INNER JOIN вже виключає непов'язані дані, і RIGHT JOIN не додає нічого нового у цьому випадку.
+
+
+--4_3
+
+SELECT *
+FROM order_details AS od
+INNER JOIN orders ON od.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+RIGHT JOIN products ON od.product_id = products.id
+RIGHT JOIN categories ON products.category_id = categories.id
+RIGHT JOIN suppliers ON products.supplier_id = suppliers.id
+WHERE employees.employee_id > 3 AND employees.employee_id <= 10;
+
+
+--4_4
+
+SELECT categories.name, COUNT(*) AS total_rows, AVG(od.quantity) avg_quantity
+FROM order_details AS od
+INNER JOIN orders ON od.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+RIGHT JOIN products ON od.product_id = products.id
+RIGHT JOIN categories ON products.category_id = categories.id
+RIGHT JOIN suppliers ON products.supplier_id = suppliers.id
+GROUP BY categories.name;
+
+
+--4_5
+
+SELECT categories.name, COUNT(*) AS total_rows, AVG(od.quantity) avg_quantity
+FROM order_details AS od
+INNER JOIN orders ON od.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+RIGHT JOIN products ON od.product_id = products.id
+RIGHT JOIN categories ON products.category_id = categories.id
+RIGHT JOIN suppliers ON products.supplier_id = suppliers.id
+GROUP BY categories.name
+HAVING AVG(od.quantity) > 21;
+
+
+--4_6
+
+SELECT categories.name, COUNT(*) AS total_rows, AVG(od.quantity) avg_quantity
+FROM order_details AS od
+INNER JOIN orders ON od.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+RIGHT JOIN products ON od.product_id = products.id
+RIGHT JOIN categories ON products.category_id = categories.id
+RIGHT JOIN suppliers ON products.supplier_id = suppliers.id
+GROUP BY categories.name
+HAVING AVG(od.quantity) > 21
+ORDER BY COUNT(*) DESC;
+
+
+--4_7
+
+SELECT categories.name, COUNT(*) AS total_rows, AVG(od.quantity) avg_quantity
+FROM order_details AS od
+INNER JOIN orders ON od.order_id = orders.id
+INNER JOIN customers ON orders.customer_id = customers.id
+INNER JOIN employees ON orders.employee_id = employees.employee_id
+INNER JOIN shippers ON orders.shipper_id = shippers.id
+RIGHT JOIN products ON od.product_id = products.id
+RIGHT JOIN categories ON products.category_id = categories.id
+RIGHT JOIN suppliers ON products.supplier_id = suppliers.id
+GROUP BY categories.name
+HAVING AVG(od.quantity) > 21
+ORDER BY COUNT(*) DESC
+LIMIT 4
+OFFSET 1;
+
